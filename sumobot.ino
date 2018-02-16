@@ -7,7 +7,7 @@ const int pinRL=4;
 
 int lineDetected=0;
 
-//pines para motores
+//motor pins
 const int pinENA = 6;
 const int pinIN1 = 7;
 const int pinIN2 = 8;
@@ -16,18 +16,18 @@ const int pinIN4 = 10;
 const int pinENB = 11;
 
 const int speedAttack = 255; 
-const int speedRadar=180;  
+const int speedRadar=120;  
 const int speedLine=255;
 
 
 const int pinMotorR[3] = { pinENA, pinIN1, pinIN2 };
 const int pinMotorL[3] = { pinENB, pinIN3, pinIN4 };
 
- //variables para oponente
+ //oponent
 const int pinOponent=A0;
 volatile int TimerOponentLoc=0;
 
-//rango de valores raw del Sharp
+//values range of raw sharp data
 const long rangeF=120; //far
 const long rangeC=680; //close
 const long rangePush=675;
@@ -36,14 +36,14 @@ int TurnRadar=0;
 
 void setup()
 {
-  //sensores linea
+  //white line sensor
   pinMode(pinFR,INPUT);
   pinMode(pinFL,INPUT);
   pinMode(pinRR,INPUT);
   pinMode(pinRL,INPUT);
   
 
-//motores
+//motors
   pinMode(pinIN1, OUTPUT);
   pinMode(pinIN2, OUTPUT);
   pinMode(pinENA, OUTPUT);
@@ -51,15 +51,15 @@ void setup()
   pinMode(pinIN4, OUTPUT);
   pinMode(pinENB, OUTPUT);
 
-  Timer1.initialize(10000);     	// Dispara cada 10 ms
-  Timer1.attachInterrupt(ISR_SHARP); // Activa la interrupcion y la asocia a ISR_SHARP
+  Timer1.initialize(10000);     	// timer for opponent detection
+  Timer1.attachInterrupt(ISR_SHARP); 
   Serial.begin(9600);
   pinMode(13,OUTPUT);
 }
 
 void loop()
 {
-    delay(1000); // delay(5100); //contar 5 s antes de iniciar el asalto.
+    delay(1000); // start the round
     
   while (1)
   {
@@ -70,12 +70,12 @@ void loop()
     lineDetected=0;
     int OponentLoc=0;
 
-   noInterrupts();               // Suspende las interrupciones
+   noInterrupts();               // disable interruptions
    OponentLoc= TimerOponentLoc;
-   interrupts();                 // Autoriza las interrupciones
+   interrupts();                 // enable interruptions
 
-    // Se comprueban los sensores de linea
-    // detector LOW-linea detectada y no oponente: borde del dojo
+    // Check line sensors
+    // LOW-detected line and no oponent: edge of dohyo
     
     if (detectFR==LOW && OponentLoc==0){
       Serial.println("DETECTED FR");
@@ -84,28 +84,27 @@ void loop()
       
     }
     if (detectFL==LOW && OponentLoc==0){
-      Serial.println("detectado DI");
+      Serial.println("detected FL");
       lineDetected=1;
       moveBackward(pinMotorR, speedLine);
       
     }
     if (detectRR==LOW && OponentLoc==0){
-      Serial.println("detectado AD");
+      Serial.println("detected RR");
       lineDetected=1;
       moveForward(pinMotorR, speedLine);
       
     }
     if (detectRL==LOW && OponentLoc==0){
-      Serial.println("detectado AI");
+      Serial.println("detected RL");
       lineDetected=1;
       moveForward(pinMotorL, speedLine);
       
     }
         
-    // si no se detecta linea blanca, o si se detecta pero esta el oponente delante
     if (lineDetected==0 && OponentLoc==0)
       {
-            //Estado Radar
+            //Radar State
             
             if(turnRadar==1){ //levo
               moveForward(pinMotorR, speedRadar);
@@ -125,11 +124,11 @@ void loop()
     if (lineDetected==0 && OponentLoc==1)
       {
             //Estado ataque
-            Serial.println("modo ataque");
+            Serial.println("attack state");
             if (turnRadar==0){ //dex
                 turnRadar=1;
-                moveForward(pinMotorD, speedAttack);
-                moveForward(pinMotorI, speedAttack);
+                moveForward(pinMotorR, speedAttack);
+                moveForward(pinMotorL, speedAttack);
 
               } else { //levo
                 giroRadar=0;
