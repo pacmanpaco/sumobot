@@ -1,12 +1,11 @@
 #include <TimerOne.h>
-// pines para sistema linea blanca
-const int pinDD=3;
-const int pinDI=2;
-const int pinAD=5;
-const int pinAI=4;
+// pin white system detection
+const int pinFR=3;
+const int pinFL=2;
+const int pinRR=5;
+const int pinRL=4;
 
-//const int lineaDetectada;
-int lineaDetectada=0;
+int lineDetected=0;
 
 //pines para motores
 const int pinENA = 6;
@@ -18,31 +17,30 @@ const int pinENB = 11;
 
 const int speedAttack = 255; 
 const int speedRadar=180;  
-const int speedLinea=255;
-const int speedPush=120;
+const int speedLine=255;
 
-const int pinMotorD[3] = { pinENA, pinIN1, pinIN2 };
-const int pinMotorI[3] = { pinENB, pinIN3, pinIN4 };
+
+const int pinMotorR[3] = { pinENA, pinIN1, pinIN2 };
+const int pinMotorL[3] = { pinENB, pinIN3, pinIN4 };
 
  //variables para oponente
-const int pinOponente=A0;
-volatile int TimerOponenteLoc=0;
+const int pinOponent=A0;
+volatile int TimerOponentLoc=0;
 
 //rango de valores raw del Sharp
-const long rangoInf=120; //lejos
-const long rangoSup=680; //cerca
-const long rangoPush=675;
-//Para estabilizar fuente alimentacion, condensador de 10uF o mas entre Vcc y Gnd
+const long rangeF=120; //far
+const long rangeC=680; //close
+const long rangePush=675;
 
-int giroRadar=0;
+int TurnRadar=0;
 
 void setup()
 {
   //sensores linea
-  pinMode(pinDD,INPUT);
-  pinMode(pinDI,INPUT);
-  pinMode(pinAD,INPUT);
-  pinMode(pinAI,INPUT);
+  pinMode(pinFR,INPUT);
+  pinMode(pinFL,INPUT);
+  pinMode(pinRR,INPUT);
+  pinMode(pinRL,INPUT);
   
 
 //motores
@@ -65,124 +63,100 @@ void loop()
     
   while (1)
   {
-    int detectDD=digitalRead(pinDD);
-    int detectDI=digitalRead(pinDI);
-    int detectAD=digitalRead(pinAD);
-    int detectAI=digitalRead(pinAI);
-    lineaDetectada=0;
-    int OponenteLoc=0;
+    int detectFR=digitalRead(pinFR);
+    int detectFL=digitalRead(pinFL);
+    int detectRR=digitalRead(pinRR);
+    int detectRL=digitalRead(pinRL);
+    lineDetected=0;
+    int OponentLoc=0;
 
    noInterrupts();               // Suspende las interrupciones
-   OponenteLoc= TimerOponenteLoc;
+   OponentLoc= TimerOponentLoc;
    interrupts();                 // Autoriza las interrupciones
 
     // Se comprueban los sensores de linea
     // detector LOW-linea detectada y no oponente: borde del dojo
     
-    if (detectDD==LOW && OponenteLoc==0){
-      Serial.println("detectado DD");
-      lineaDetectada=1;
-      moveBackward(pinMotorI, speedLinea);
+    if (detectFR==LOW && OponentLoc==0){
+      Serial.println("DETECTED FR");
+      lineDetected=1;
+      moveBackward(pinMotorL, speedLine);
       
     }
-    if (detectDI==LOW && OponenteLoc==0){
+    if (detectFL==LOW && OponentLoc==0){
       Serial.println("detectado DI");
-      lineaDetectada=1;
-      moveBackward(pinMotorD, speedLinea);
+      lineDetected=1;
+      moveBackward(pinMotorR, speedLine);
       
     }
-    if (detectAD==LOW && OponenteLoc==0){
+    if (detectRR==LOW && OponentLoc==0){
       Serial.println("detectado AD");
-      lineaDetectada=1;
-      moveForward(pinMotorD, speedLinea);
+      lineDetected=1;
+      moveForward(pinMotorR, speedLine);
       
     }
-    if (detectAI==LOW && OponenteLoc==0){
+    if (detectRL==LOW && OponentLoc==0){
       Serial.println("detectado AI");
-      lineaDetectada=1;
-      moveForward(pinMotorI, speedLinea);
+      lineDetected=1;
+      moveForward(pinMotorL, speedLine);
       
     }
-    
-    // detector low y oponente=1: treta del oponente: poner lamina blanca debajo //del robot
-    
-//    Serial.print("OponenteLoc: ");
-//    Serial.print(OponenteLoc);
-//    Serial.print("analogRead: ");
-//    Serial.print(analogRead(pinOponente));
-    //Serial.print("lineadetectada: ");
-    //Serial.println(lineaDetectada);
+        
     // si no se detecta linea blanca, o si se detecta pero esta el oponente delante
-    if (lineaDetectada==0 && OponenteLoc==0)
+    if (lineDetected==0 && OponentLoc==0)
       {
             //Estado Radar
             
-            if(giroRadar==1){ //levo
-              moveForward(pinMotorD, speedRadar);
-              moveBackward(pinMotorI, speedRadar);
-              Serial.println("modo radar 1 levo");
+            if(turnRadar==1){ //levo
+              moveForward(pinMotorR, speedRadar);
+              moveBackward(pinMotorL, speedRadar);
+              Serial.println("radar 1 levo");
              
             }
-            if (giroRadar==0){ //dex
-              moveForward(pinMotorI, speedRadar);
-              moveBackward(pinMotorD, speedRadar);
-              Serial.println("modo radar 0 dex");
+            if (turnRadar==0){ //dex
+              moveForward(pinMotorL, speedRadar);
+              moveBackward(pinMotorR, speedRadar);
+              Serial.println("radar 0 dex");
            
             }
             
       }
 
-    if (lineaDetectada==0 && OponenteLoc==1)
+    if (lineDetected==0 && OponentLoc==1)
       {
             //Estado ataque
             Serial.println("modo ataque");
-            if (giroRadar==0){ //dex
-                giroRadar=1;
-//                moveForward(pinMotorD,speedAttack);
-//                delay(130); //compensa deteccion no linea recta
+            if (turnRadar==0){ //dex
+                turnRadar=1;
                 moveForward(pinMotorD, speedAttack);
                 moveForward(pinMotorI, speedAttack);
-	    if (  analogRead(pinOponente) >= rangoPush )  Push();
+
               } else { //levo
                 giroRadar=0;
-//                moveForward(pinMotorI,speedAttack);
-//                delay(130); //compensa deteccion no linea recta
-                moveForward(pinMotorD, speedAttack);
-                moveForward(pinMotorI, speedAttack);
-   if (  analogRead(pinOponente) >= rangoPush )  Push();
+
+                moveForward(pinMotorR, speedAttack);
+                moveForward(pinMotorL, speedAttack);
+
                }
             
-            // estrategia: varios empujones?
-            // sensor giroscopio por si se levanta el morro? detectar choque?
        }
       delay(10);
   }
 }
-  
-void Push()
-{	
-	
-moveForward(pinMotorD, speedPush);
-moveForward(pinMotorI, speedPush);
-delay(100);
-moveForward(pinMotorD, speedAttack);
-moveForward(pinMotorI, speedAttack);
-delay(100);
 
-}
 
 void ISR_Sharp()
 {
 
- TimerOponenteLoc=GetOponent();
+ TimerOponentLoc=GetOponent();
 
 }
 
 
 void stopAll()
 {
-  fullStop(pinMotorD);
-  fullStop(pinMotorI);
+  fullStop(pinMotorR);
+  fullStop(pinMotorL);
 }
 void moveForward(const int pinMotor[3], int speed)
 {
@@ -213,33 +187,34 @@ int GetOponent()
 
   //long meanSharp = meanFilter.AddValue(valSharp);
   
-  int valSharp= analogRead(pinOponente);
+  int valSharp= analogRead(pinOponent);
 
   Serial.print("valSharp: ");
   Serial.println(valSharp);  
   
-  if (rangoInf <= valSharp && valSharp<= rangoSup)
+  if (rangeL <= valSharp && valSharp<= rangeC)
   {
       delay(50);
-      valSharp=analogRead(pinOponente);
+      valSharp=analogRead(pinOponent);
       
- 	if (rangoInf <= valSharp && valSharp <= rangoSup)
-{
-     digitalWrite(13,HIGH);
-     return 1;
-}
+ 	if (rangeL <= valSharp && valSharp <= rangeC)
+	{
+     		digitalWrite(13,HIGH);
+     		return 1;
+	}
   }
-  else{
-        	delay(50);
-            valSharp=analogRead(pinOponente);
+  else
+  {
+       	delay(50);
+        valSharp=analogRead(pinOponente);
       
  	if (rangoInf > valSharp || valSharp > rangoSup)
-{
-     digitalWrite(13,LOW);
-    	     return 0;
-}
+	{
+     		digitalWrite(13,LOW);
+    	     	return 0;
+	}
     
-    } 
+   } 
 
 }
 
