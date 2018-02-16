@@ -196,7 +196,7 @@ int GetOponent()
       delay(50);
       valSharp=analogRead(pinOponent);
       
- 	if (rangeL <= valSharp && valSharp <= rangeC)
+ 	if (rangeF <= valSharp && valSharp <= rangeC)
 	{
      		digitalWrite(13,HIGH);
      		return 1;
@@ -207,7 +207,7 @@ int GetOponent()
        	delay(50);
         valSharp=analogRead(pinOponente);
       
- 	if (rangoInf > valSharp || valSharp > rangoSup)
+ 	if (rangeF > valSharp || valSharp > rangeC)
 	{
      		digitalWrite(13,LOW);
     	     	return 0;
