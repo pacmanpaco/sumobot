@@ -51,8 +51,8 @@ void setup()
   pinMode(pinIN4, OUTPUT);
   pinMode(pinENB, OUTPUT);
 
-  Timer1.initialize(10000);     	// timer for opponent detection
-  Timer1.attachInterrupt(ISR_SHARP); 
+  Timer1.initialize(10000);       // timer for opponent detection
+  Timer1.attachInterrupt(ISR_Sharp); 
   Serial.begin(9600);
   pinMode(13,OUTPUT);
 }
@@ -106,13 +106,13 @@ void loop()
       {
             //Radar State
             
-            if(turnRadar==1){ //levo
+            if(TurnRadar==1){ //levo
               moveForward(pinMotorR, speedRadar);
               moveBackward(pinMotorL, speedRadar);
               Serial.println("radar 1 levo");
              
             }
-            if (turnRadar==0){ //dex
+            if (TurnRadar==0){ //dex
               moveForward(pinMotorL, speedRadar);
               moveBackward(pinMotorR, speedRadar);
               Serial.println("radar 0 dex");
@@ -125,13 +125,13 @@ void loop()
       {
             //Estado ataque
             Serial.println("attack state");
-            if (turnRadar==0){ //dex
-                turnRadar=1;
+            if (TurnRadar==0){ //dex
+                TurnRadar=1;
                 moveForward(pinMotorR, speedAttack);
                 moveForward(pinMotorL, speedAttack);
 
               } else { //levo
-                giroRadar=0;
+                TurnRadar=0;
 
                 moveForward(pinMotorR, speedAttack);
                 moveForward(pinMotorL, speedAttack);
@@ -191,30 +191,29 @@ int GetOponent()
   Serial.print("valSharp: ");
   Serial.println(valSharp);  
   
-  if (rangeL <= valSharp && valSharp<= rangeC)
+  if (rangeF <= valSharp && valSharp<= rangeC)
   {
       delay(50);
       valSharp=analogRead(pinOponent);
       
- 	if (rangeF <= valSharp && valSharp <= rangeC)
-	{
-     		digitalWrite(13,HIGH);
-     		return 1;
-	}
+  if (rangeF <= valSharp && valSharp <= rangeC)
+  {
+        digitalWrite(13,HIGH);
+        return 1;
+  }
   }
   else
   {
-       	delay(50);
-        valSharp=analogRead(pinOponente);
+        delay(50);
+        valSharp=analogRead(pinOponent);
       
- 	if (rangeF > valSharp || valSharp > rangeC)
-	{
-     		digitalWrite(13,LOW);
-    	     	return 0;
-	}
+  if (rangeF > valSharp || valSharp > rangeC)
+  {
+        digitalWrite(13,LOW);
+            return 0;
+  }
     
    } 
 
 }
-
 
